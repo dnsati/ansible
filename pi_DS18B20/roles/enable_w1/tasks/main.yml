@@ -1,0 +1,7 @@
+- name: Enalbe "one-wire" interface on Pin 14
+  lineinfile:
+    path: /boot/config.txt
+    insertafter: EOF 
+    line: "dtoverlay=w1-gpio,gpiopin=14"
+    firstmatch: yes
+    state: present  

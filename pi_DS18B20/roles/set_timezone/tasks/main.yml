@@ -1,0 +1,8 @@
+- name: set timezone to zone defined in newconf_vars.yml
+  timezone:
+    name: "{{ var_timezone }}"
+  register: timezone 
+
+- debug: 
+    msg: "timezone upadted to: {{ var_timezone }} "
+  when: timezone.changed      

@@ -1,0 +1,10 @@
+- name: Unconditionally reboot the machine with all defaults
+  ansible.builtin.reboot:
+    msg: "Reboot initiated by Ansible for kernel updates"
+    post_reboot_delay: 2
+
+- name: Check if host is up
+  ansible.builtin.ping:
+ 
+
+  

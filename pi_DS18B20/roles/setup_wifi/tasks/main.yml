@@ -1,0 +1,22 @@
+---
+- name: enable"none free" packages
+  lineinfile:
+    path: /etc/apt/sources.list 
+    regexp: "#deb-src http://raspbian.raspberrypi.org/raspbian/ buster main contrib non-free rpi"
+    line: "deb-src http://raspbian.raspberrypi.org/raspbian/ buster main contrib non-free rpi"  
+    state: present  
+
+- name: install Belkin Components F5D7050 Wireless G Adapter v4000 package
+  include_role:
+    name: install_package
+  vars:
+    var_package: zd1211-firmware
+
+- name: Configure WIFI
+  template: src=wpa_supplicant.conf.j2 dest=/etc/wpa_supplicant/wpa_supplicant.conf mode=0600
+  notify:
+   - restart networking
+  vars:       
+    wifi_ssid: "{{ ssid }}"
+    wifi_pass: "{{ wifipasswd }}"
+  when: ( ssid != "") and  ( wifipasswd != "")       

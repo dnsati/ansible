@@ -1,0 +1,52 @@
+- name: Get information about the user
+  getent:
+    key={{superuser}}
+    database=passwd
+    fail_key=false
+
+- name: create a new linux user with sudo rights
+  user:
+    name: "{{ superuser }}"
+    #password: "{{ superuser_passwd|password_hash('sha512') }}"
+    password: "{{ superuser_passwd }}" #when already hashed by userinput  hash not needed
+    state: present       
+    groups: # Empty by default      
+      - sudo    
+    shell: /bin/bash       # Defaults to /bin/bash
+    system: no             # Defaults to no
+    createhome: yes        # Defaults to yes
+    home: /home/{{ superuser }}  # Defaults to /home/<username>
+  when: 
+    - getent_passwd[superuser] == none 
+    - superuser != ""
+- debug:
+    msg: "user: {{ superuser }} was created"    
+  when: 
+    - getent_passwd[superuser] == none 
+    - superuser != ""
+    
+- name: enable common aliases
+  lineinfile:
+    path: /home/{{ superuser }}/.bashrc
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"  
+    state: present  
+  when: 
+    - getent_passwd[superuser] == none 
+    - superuser != ""
+    
+  loop:  
+    - { regexp: '^\#?\s?#alias ll=.*$', line: "alias ll='ls -l'"}
+    - { regexp: '^\#?\s?#alias la=.*$', line: "alias la='ls -A'"}
+    - { regexp: '^\#?\s?#alias l=.*$', line: "alias l='ls -CF'"}
+    
+- name: add alias "sensor" # wil read the one-wire sensor data  
+  when: 
+    - getent_passwd[superuser] == none 
+    - superuser != ""
+  lineinfile:
+    path: /home/{{ superuser }}/.bashrc
+    insertafter: "# some more ls aliases" 
+    line: "alias sensor='cat /sys/bus/w1/devices/28-020192464358/w1_slave |grep t='"
+    firstmatch: yes
+    state: present  

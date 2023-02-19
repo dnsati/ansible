@@ -1,0 +1,7 @@
+---
+# data have to be entered manually for setting up a fresh installed linux  
+#superuser: user
+#uperuser_passwd: 'password'
+#hostname: testsrv5
+#var_timezone: Europe/Budapest #Europe/Budapest #Asia/Tokyo
+#root_passwd: not defined 

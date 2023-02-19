@@ -1,0 +1,5 @@
+- name: install package "{{ var_package }}"
+  ansible.builtin.apt:
+    name: "{{ var_package }}"
+    state: latest
+    update_cache: no

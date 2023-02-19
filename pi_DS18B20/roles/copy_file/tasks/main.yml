@@ -1,0 +1,13 @@
+#- name: check if "{{var_srcfile}}" exists
+#  stat:
+#    path: var_srcfile
+#  register: file_ok
+
+- name: copy the file "{{var_srcfile}}" from master   
+  copy:
+    src: "{{var_srcfile}}"
+    dest: "{{var_destfile}}"
+    owner: root
+    group: root    
+    mode: 0644   
+  #when: file_ok.stat.exists

@@ -1,0 +1,145 @@
+---
+- hosts: newmachine
+  become: true
+  gather_facts: true
+  
+  vars_prompt:
+    - name: var_user_response_rootlogin
+      prompt: "Do you want to disable ssh for root user (y/n)?" #<--This will be visible prompt without vairable
+      private: no
+      default: "N"
+
+    - name: var_user_response_pi
+      prompt: "Do you want to lock pi user account (y/n)?" #<--This will be visible prompt without vairable
+      private: no
+      default: "N"    
+    
+    - name: var_user_response_update
+      prompt: "Do you want to update the system (y/n)?" #<--This will be visible prompt without vairable
+      private: no
+      default: "N"    
+    
+    - name: superuser
+      prompt: Enter username for superuser (will not be created when left empty )
+      private: no
+      #default: "superuser"         
+    
+    - name: superuser_passwd
+      prompt: Enter password for new user
+      private: true
+      encrypt: sha512_crypt
+      confirm: true
+      salt_size: 7   
+
+    - name: hostaname
+      prompt: "Enter the desired hostname (leave empty to skip)"
+      private: no
+     
+    - name: timezone
+      prompt: "choosetimezone option or type value and hit enter : \n1. Europe/Budapest\n2. hit Enter for (unchanged) \n ---->:  "
+      private: no 
+      
+    - name: ssid
+      prompt: Enter SSID (leave empty to skip)
+      private: no
+
+    - name: wifipasswd
+      prompt: Enter wifi key (leave empty to skip)
+      private: yes             
+      
+  tasks:
+       
+    - name: execute disable_rootlogin role
+      include_role:
+        name: disable_rootlogin
+      when: var_user_response_rootlogin|lower == 'y'
+    
+    - name: execute update role
+      include_role:
+        name: upgrade_packages
+      when: var_user_response_update|lower == 'y'
+
+    - name: execute set hostame role
+      include_role:
+        name: rename_host  
+      when: hostaname != ""
+    
+    - name: execute user creation role
+      include_role:
+        name: create_newuser 
+      when: superuser != "" 
+   
+    - name: disable user "pi"
+      ansible.builtin.user:
+        name: pi
+        state: present
+        password_lock: true
+        shell: "/sbin/nologin"
+      when: var_user_response_pi|lower == 'y'     
+    
+    - name: execute set timezone role
+      include_role:
+        name: set_timezone
+      vars:
+        var_timezone: Europe/Budapest
+      when: (timezone == "1")    
+    
+    - name: execute enable one-wire interface role
+      include_role:
+        name: enable_w1        
+    
+    - name: execute install nginx package
+      include_role:
+        name: install_package
+      vars:
+        var_package: nginx
+      
+    - name: execute enable php 
+      include_role:
+        name: enable_nginxphp  
+
+
+    - name: execute install php package
+      include_role:
+        name: install_package
+      vars:
+        var_package: php7.3-fpm    
+ 
+    - name: execute wifi setup role
+      include_role:
+        name: setup_wifi
+    
+    - name: execute copy startpage html/php
+      include_role:
+        name: copy_file
+      vars:
+        var_srcfile: ./files/index.php
+        var_destfile: /var/www/html
+
+    - name: execute copy browser startpage backgroung
+      include_role:
+        name: copy_file
+      vars:
+        var_srcfile: ./files/thermobackground.jpg
+        var_destfile: /var/www/html    
+
+    - pause:
+        prompt: " \n Do you want reboot the system (y/N)?"
+        echo: yes
+        seconds: 40
+      register: confirm_reboot 
+   
+    - name: execute reboot server role
+      include_role:
+        name: reboot_srv 
+      when: confirm_reboot.user_input == 'y'
+     
+    - debug:
+        msg: 
+          - " hostname: {{ ansible_hostname }} "       
+          - " ipv4_addresses: {{ ansible_all_ipv4_addresses }} "
+          - " Wifi SSID: {{ ssid }} "
+    #- name: Test variable
+    #  debug:
+    #    msg: "meesage variable value: {{ ssid }}"
+    #  when: ( ssid != "") and  ( wifipasswd != "") 

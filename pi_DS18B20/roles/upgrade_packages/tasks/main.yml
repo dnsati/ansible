@@ -1,0 +1,13 @@
+- name: update repository index
+  apt:
+    update_cache: yes
+    #upgrade: dist
+  #changed_when: false     
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+- name: upgrage packages  
+  apt:        
+    upgrade: dist
+  #changed_when: false     
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+ 

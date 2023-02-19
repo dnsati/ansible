@@ -1,0 +1,6 @@
+---
+- name: enable php for nginx
+  template: src=nginxphp.j2 dest=/etc/nginx/sites-available/default mode=0644
+  notify:
+   - restart nginx
+ 

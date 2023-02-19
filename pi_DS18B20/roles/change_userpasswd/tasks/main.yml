@@ -1,0 +1,5 @@
+- name: change superuser password
+  ansible.builtin.user:
+    name: "{{ superuser }}"
+    state: present
+    password: "{{ superuser_passwd }}"
